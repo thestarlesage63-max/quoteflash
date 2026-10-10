@@ -1,0 +1,437 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#102b35">
+<title>QuoteFlash | Smart Estimates</title>
+<style>
+:root {
+  --bg:#f3f6f7; --card:#fff; --ink:#18313a;
+  --muted:#647780; --accent:#087f69; --line:#dce5e8;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:system-ui,-apple-system,sans-serif;
+}
+header {
+  background:#102b35; color:white; padding:22px 18px;
+}
+.top {
+  max-width:720px; margin:auto; display:flex;
+  justify-content:space-between; align-items:center; gap:12px;
+}
+.logo { font-size:23px; font-weight:800; letter-spacing:-1px; }
+.logo span { color:#78e3c3; }
+header p { color:#c3d6da; margin:5px 0 0; font-size:13px; }
+main { max-width:720px; padding:18px 14px 45px; margin:auto; }
+.card {
+  background:var(--card); border:1px solid var(--line);
+  border-radius:16px; padding:17px; margin-bottom:15px;
+}
+h2 { font-size:17px; margin:0 0 15px; }
+label {
+  display:block; font-size:12px; font-weight:700;
+  margin:12px 0 6px; color:var(--muted);
+}
+input,textarea,select {
+  width:100%; padding:12px; border:1px solid var(--line);
+  border-radius:9px; background:white; color:var(--ink);
+  font:inherit; font-size:14px;
+}
+textarea { resize:vertical; min-height:65px; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.item {
+  border:1px solid var(--line); padding:12px;
+  border-radius:12px; margin-bottom:10px;
+}
+.item .remove { margin-top:9px; }
+button {
+  border:0; border-radius:10px; padding:12px 14px;
+  font:inherit; font-size:14px; font-weight:700;
+  cursor:pointer;
+}
+.primary { background:var(--accent); color:white; }
+.secondary { background:#e7f4f0; color:#08634f; }
+.dark { background:#102b35; color:white; }
+.danger { background:#fff0ed; color:#a4382a; }
+.small { padding:9px 11px; font-size:12px; }
+.full { width:100%; }
+.actions { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.totalrow {
+  display:flex; justify-content:space-between;
+  gap:12px; padding:7px 0; font-size:14px;
+}
+.grand {
+  border-top:1px solid var(--line); margin-top:8px;
+  padding-top:14px; font-weight:800; font-size:21px;
+}
+.hint { font-size:12px; color:var(--muted); line-height:1.5; }
+#status { font-size:13px; color:var(--accent); margin-top:10px; }
+@media(min-width:560px) {
+  .itemgrid { display:grid; grid-template-columns:2fr 1fr 1fr; gap:8px; }
+}
+@media print {
+  body { background:white; }
+  header { background:white; color:#102b35; padding:8px 0; }
+  header p { color:#444; }
+  main { padding:8px 0; }
+  .no-print,button { display:none !important; }
+  .card { border:1px solid #ddd; break-inside:avoid; }
+  input,textarea,select {
+    border:0; padding:2px 0; appearance:none;
+  }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div>
+      <div class="logo">Quote<span>Flash</span></div>
+      <p id="tagline">Presupuestos profesionales en minutos</p>
+    </div>
+    <select id="language" aria-label="Language" style="width:112px">
+      <option value="es">Español</option>
+      <option value="en">English</option>
+    </select>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <h2 data-i="business">Tu negocio</h2>
+    <label data-i="businessName">Nombre del negocio</label>
+    <input id="business" placeholder="Ej. Star Cleaning">
+    <div class="grid">
+      <div>
+        <label data-i="phone">Teléfono o email</label>
+        <input id="contact" placeholder="555-0100">
+      </div>
+      <div>
+        <label data-i="currency">Moneda</label>
+        <select id="currency">
+          <option value="USD">USD ($)</option>
+          <option value="EUR">EUR (€)</option>
+          <option value="CAD">CAD ($)</option>
+          <option value="GBP">GBP (£)</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 data-i="quote">Detalles del presupuesto</h2>
+    <div class="grid">
+      <div>
+        <label data-i="client">Nombre del cliente</label>
+        <input id="client" placeholder="Nombre">
+      </div>
+      <div>
+        <label data-i="date">Fecha</label>
+        <input id="date" type="date">
+      </div>
+    </div>
+    <label data-i="description">Descripción del trabajo</label>
+    <textarea id="description" placeholder="Describe el servicio..."></textarea>
+  </section>
+
+  <section class="card">
+    <h2 data-i="services">Servicios y precios</h2>
+    <div id="items"></div>
+    <button class="secondary full no-print" id="add" type="button">+ Añadir servicio</button>
+    <div style="margin-top:18px">
+      <div class="totalrow">
+        <span data-i="subtotal">Subtotal</span><strong id="subtotal">$0.00</strong>
+      </div>
+      <div class="grid no-print">
+        <div>
+          <label data-i="tax">Impuesto (%)</label>
+          <input id="tax" type="number" min="0" max="100" step="0.01" value="0">
+        </div>
+        <div>
+          <label data-i="discount">Descuento (%)</label>
+          <input id="discount" type="number" min="0" max="100" step="0.01" value="0">
+        </div>
+      </div>
+      <div class="totalrow">
+        <span data-i="taxAmount">Impuesto</span><strong id="taxTotal">$0.00</strong>
+      </div>
+      <div class="totalrow">
+        <span data-i="discountAmount">Descuento</span><strong id="discountTotal">$0.00</strong>
+      </div>
+      <div class="totalrow grand">
+        <span data-i="total">TOTAL</span><span id="total">$0.00</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 data-i="terms">Condiciones</h2>
+    <textarea id="notes" placeholder="Ej. Pago al finalizar el trabajo."></textarea>
+    <p class="hint" data-i="noteHint">
+      Revisa los precios e impuestos aplicables antes de enviar el presupuesto.
+    </p>
+  </section>
+
+  <section class="card no-print">
+    <h2 data-i="tools">Tus herramientas</h2>
+    <div class="actions">
+      <button class="primary" id="save" type="button" data-i="save">Guardar</button>
+      <button class="secondary" id="load" type="button" data-i="load">Cargar guardado</button>
+      <button class="dark" id="pdf" type="button" data-i="pdf">Imprimir / PDF</button>
+      <button class="secondary" id="share" type="button" data-i="share">Compartir</button>
+    </div>
+    <div id="status" role="status" aria-live="polite"></div>
+    <p class="hint" data-i="storageHint">
+      Los datos se guardan en este navegador, en este dispositivo.
+    </p>
+  </section>
+
+  <footer class="hint" style="text-align:center;padding:8px">
+    QuoteFlash · Simple tools for independent workers
+  </footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const fields = [
+  "business","contact","currency","client","date",
+  "description","tax","discount","notes"
+];
+const translations = {
+  es: {
+    tagline:"Presupuestos profesionales en minutos",
+    business:"Tu negocio", businessName:"Nombre del negocio",
+    phone:"Teléfono o email", currency:"Moneda",
+    quote:"Detalles del presupuesto", client:"Nombre del cliente",
+    date:"Fecha", description:"Descripción del trabajo",
+    services:"Servicios y precios", add:"+ Añadir servicio",
+    service:"Servicio", qty:"Cantidad", price:"Precio unitario",
+    remove:"Eliminar", subtotal:"Subtotal", tax:"Impuesto (%)",
+    discount:"Descuento (%)", taxAmount:"Impuesto",
+    discountAmount:"Descuento", total:"TOTAL",
+    terms:"Condiciones", noteHint:"Revisa los precios e impuestos aplicables antes de enviar el presupuesto.",
+    tools:"Tus herramientas", save:"Guardar",
+    load:"Cargar guardado", pdf:"Imprimir / PDF",
+    share:"Compartir", storageHint:"Los datos se guardan en este navegador, en este dispositivo.",
+    saved:"Presupuesto guardado en este dispositivo.",
+    loaded:"Presupuesto cargado.", empty:"No hay ningún presupuesto guardado.",
+    shared:"No se pudo abrir la función de compartir.",
+    noItems:"Añade al menos un servicio.",
+    untitled:"Presupuesto", dateLabel:"Fecha",
+    customer:"Cliente", provider:"Proveedor",
+    subtotalLabel:"Subtotal", taxLabel:"Impuesto",
+    discountLabel:"Descuento", totalLabel:"TOTAL",
+    termsLabel:"Condiciones", estimate:"PRESUPUESTO",
+    businessPlaceholder:"Ej. Star Cleaning",
+    clientPlaceholder:"Nombre",
+    descriptionPlaceholder:"Describe el servicio...",
+    notesPlaceholder:"Ej. Pago al finalizar el trabajo.",
+    servicePlaceholder:"Ej. Limpieza de casa"
+  },
+  en: {
+    tagline:"Professional estimates in minutes",
+    business:"Your business", businessName:"Business name",
+    phone:"Phone or email", currency:"Currency",
+    quote:"Estimate details", client:"Customer name",
+    date:"Date", description:"Job description",
+    services:"Services and pricing", add:"+ Add service",
+    service:"Service", qty:"Quantity", price:"Unit price",
+    remove:"Remove", subtotal:"Subtotal", tax:"Tax (%)",
+    discount:"Discount (%)", taxAmount:"Tax",
+    discountAmount:"Discount", total:"TOTAL",
+    terms:"Terms and conditions", noteHint:"Review applicable prices and taxes before sending the estimate.",
+    tools:"Your tools", save:"Save",
+    load:"Load saved", pdf:"Print / PDF",
+    share:"Share", storageHint:"Data is stored in this browser on this device.",
+    saved:"Estimate saved on this device.",
+    loaded:"Estimate loaded.", empty:"No saved estimate found.",
+    shared:"Could not open the share feature.",
+    noItems:"Add at least one service.",
+    untitled:"Estimate", dateLabel:"Date",
+    customer:"Customer", provider:"Provider",
+    subtotalLabel:"Subtotal", taxLabel:"Tax",
+    discountLabel:"Discount", totalLabel:"TOTAL",
+    termsLabel:"Terms", estimate:"ESTIMATE",
+    businessPlaceholder:"e.g. Star Cleaning",
+    clientPlaceholder:"Name",
+    descriptionPlaceholder:"Describe the job...",
+    notesPlaceholder:"e.g. Payment due upon completion.",
+    servicePlaceholder:"e.g. House cleaning"
+  }
+};
+let lang = "es";
+let nextId = 0;
+
+function t(key) {
+  return translations[lang][key] || key;
+}
+function money(value) {
+  return new Intl.NumberFormat(lang === "es" ? "es-US" : "en-US", {
+    style:"currency", currency:$("currency").value
+  }).format(Number.isFinite(value) ? value : 0);
+}
+function addItem(data = {}) {
+  const id = ++nextId;
+  const div = document.createElement("div");
+  div.className = "item";
+  div.dataset.id = id;
+  div.innerHTML = `
+    <label>${t("service")}</label>
+    <input class="iname" maxlength="120">
+    <div class="itemgrid">
+      <div><label>${t("qty")}</label>
+      <input class="iqty" type="number" min="0" max="1000000" step="any" value="1"></div>
+      <div><label>${t("price")}</label>
+      <input class="iprice" type="number" min="0" max="100000000" step="any" value="0"></div>
+    </div>
+    <button type="button" class="danger small remove no-print">${t("remove")}</button>
+  `;
+  div.querySelector(".iname").value = data.name || "";
+  div.querySelector(".iqty").value = data.qty ?? 1;
+  div.querySelector(".iprice").value = data.price ?? 0;
+  div.querySelectorAll("input").forEach(input =>
+    input.addEventListener("input", calculate)
+  );
+  div.querySelector(".remove").addEventListener("click", () => {
+    div.remove();
+    calculate();
+  });
+  $("items").appendChild(div);
+  calculate();
+}
+function getItems() {
+  return [...$("items").children].map(div => ({
+    name:div.querySelector(".iname").value,
+    qty:Math.max(0,Number(div.querySelector(".iqty").value)||0),
+    price:Math.max(0,Number(div.querySelector(".iprice").value)||0)
+  }));
+}
+function calculate() {
+  const subtotal = getItems().reduce((sum,item) =>
+    sum + item.qty * item.price, 0);
+  const taxRate = Math.min(100,Math.max(0,Number($("tax").value)||0));
+  const discountRate = Math.min(100,Math.max(0,Number($("discount").value)||0));
+  const discount = subtotal * discountRate / 100;
+  const taxable = Math.max(0,subtotal - discount);
+  const tax = taxable * taxRate / 100;
+  $("subtotal").textContent = money(subtotal);
+  $("taxTotal").textContent = money(tax);
+  $("discountTotal").textContent = money(discount);
+  $("total").textContent = money(taxable + tax);
+}
+function snapshot() {
+  return {
+    version:1, lang,
+    fields:Object.fromEntries(fields.map(id => [id,$(id).value])),
+    items:getItems()
+  };
+}
+function restore(data) {
+  if (!data || !data.fields || !Array.isArray(data.items)) {
+    throw new Error("Invalid saved estimate");
+  }
+  fields.forEach(id => {
+    if (data.fields[id] !== undefined) $(id).value = data.fields[id];
+  });
+  $("items").replaceChildren();
+  data.items.slice(0,100).forEach(addItem);
+  setLanguage(data.lang === "en" ? "en" : "es");
+  calculate();
+}
+function status(message) {
+  $("status").textContent = message;
+}
+function setLanguage(value) {
+  lang = value;
+  $("language").value = value;
+  document.documentElement.lang = value;
+  document.title = "QuoteFlash | " +
+    (value === "es" ? "Presupuestos" : "Estimates");
+  document.querySelectorAll("[data-i]").forEach(el => {
+    const key = el.dataset.i;
+    if (translations[lang][key]) el.textContent = t(key);
+  });
+  document.querySelectorAll(".item").forEach(div => {
+    const labels = div.querySelectorAll("label");
+    labels[0].textContent = t("service");
+    labels[1].textContent = t("qty");
+    labels[2].textContent = t("price");
+    div.querySelector(".remove").textContent = t("remove");
+  });
+  $("business").placeholder = t("businessPlaceholder");
+  $("client").placeholder = t("clientPlaceholder");
+  $("description").placeholder = t("descriptionPlaceholder");
+  $("notes").placeholder = t("notesPlaceholder");
+  calculate();
+}
+$("add").addEventListener("click", () => addItem());
+$("language").addEventListener("change", e => {
+  setLanguage(e.target.value);
+  status("");
+});
+$("currency").addEventListener("change", calculate);
+["tax","discount"].forEach(id => $(id).addEventListener("input", calculate));
+
+$("save").addEventListener("click", () => {
+  try {
+    localStorage.setItem("quoteflash-estimate",JSON.stringify(snapshot()));
+    status(t("saved"));
+  } catch {
+    status("Unable to save. / No se pudo guardar.");
+  }
+});
+$("load").addEventListener("click", () => {
+  try {
+    const raw = localStorage.getItem("quoteflash-estimate");
+    if (!raw) return status(t("empty"));
+    restore(JSON.parse(raw));
+    status(t("loaded"));
+  } catch {
+    status("Unable to load. / No se pudo cargar.");
+  }
+});
+$("pdf").addEventListener("click", () => {
+  calculate();
+  window.print();
+});
+$("share").addEventListener("click", async () => {
+  const items = getItems();
+  if (!items.length) return status(t("noItems"));
+  const subtotal = items.reduce((s,i) => s + i.qty*i.price,0);
+  const discount = subtotal * Math.min(100,Math.max(0,Number($("discount").value)||0))/100;
+  const tax = Math.max(0,subtotal-discount) * Math.min(100,Math.max(0,Number($("tax").value)||0))/100;
+  const lines = [
+    t("estimate"), $("business").value, $("contact").value,
+    t("client")+": "+$("client").value,
+    t("dateLabel")+": "+$("date").value,
+    $("description").value, "",
+    ...items.map(i => `${i.name}: ${i.qty} × ${money(i.price)} = ${money(i.qty*i.price)}`),
+    `${t("subtotalLabel")}: ${money(subtotal)}`,
+    `${t("discountLabel")}: -${money(discount)}`,
+    `${t("taxLabel")}: ${money(tax)}`,
+    `${t("totalLabel")}: ${money(Math.max(0,subtotal-discount)+tax)}`,
+    "", t("termsLabel")+": "+$("notes").value
+  ].filter(Boolean).join("\n");
+  try {
+    if (navigator.share) {
+      await navigator.share({title:t("untitled"),text:lines});
+    } else if (navigator.clipboard) {
+      await navigator.clipboard.writeText(lines);
+      status("Copied! / ¡Copiado!");
+    } else {
+      status(t("shared"));
+    }
+  } catch (e) {
+    if (e.name !== "AbortError") status(t("shared"));
+  }
+});
+$("date").value = new Date().toLocaleDateString("en-CA");
+addItem({name:"",qty:1,price:0});
+setLanguage("es");
+</script>
+</body>
+</html>

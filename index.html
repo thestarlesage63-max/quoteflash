@@ -86,7 +86,34 @@ button {
 }
 </style>
 </head>
+  <link rel="stylesheet" href="style.css">
 <body>
+  <div class="container">
+  <header>
+    <h1>QuoteFlash</h1>
+    <p>Simple estimates for your business | Presupuestos para tu negocio</p>
+  </header>  <div class="card">
+    <h2>New Estimate / Nuevo presupuesto</h2><label for="client">Client Name / Nombre del cliente</label>
+<input id="client" type="text" placeholder="Enter client name">
+
+<label for="service">Service / Servicio</label>
+<input id="service" type="text" placeholder="Describe the work">
+
+<label for="hours">Hours / Horas</label>
+<input id="hours" type="number" min="0" step="0.25" placeholder="0">
+
+<label for="rate">Hourly Rate / Tarifa por hora ($)</label>
+<input id="rate" type="number" min="0" step="0.01" placeholder="0.00">
+
+<label for="materials">Materials / Materiales ($)</label>
+<input id="materials" type="number" min="0" step="0.01" placeholder="0.00">
+
+<button type="button" id="calculate">Calculate Estimate / Calcular</button>
+
+<h2 id="total">Total: $0.00</h2>
+
+  </div>  <footer>QuoteFlash | Estimates made simple</footer>
+  </div>
 <header>
   <div class="top">
     <div>
